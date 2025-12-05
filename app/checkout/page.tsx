@@ -249,7 +249,7 @@ export default function CheckoutPage() {
                   }}
                 >
                   <option value={1}>التوصيل الى المنزل</option>
-                  <option value={2}>الاستلام في الوكالة</option>
+                  <option value={2}>التسليم إلى المكتب</option>
                 </select>
               </div>
 

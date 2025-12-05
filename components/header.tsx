@@ -19,36 +19,46 @@ export function Header() {
 
   return (
     <header className="border-b border-zinc-800 bg-black/95 backdrop-blur sticky top-0 z-40">
-      <div className="px-4 md:px-8">
+      <div className="px-0 md:px-0">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2 group">
-
-            <div className="flex flex-col">
-              <span className="text-xl font-black text-white tracking-tight leading-none">
-                Zym<span className="text-yellow-400">Power</span>
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-28 h-10 md:w-32 md:h-12">
+              <Image
+                src="/images/logo.png"
+                alt="ZymPower Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[11px] md:text-xs text-zinc-300 tracking-wide">
+                Compléments alimentaires
               </span>
-              <span className="text-[10px] text-zinc-500 tracking-widest uppercase">Suppléments de Performance</span>
+              <span className="text-[11px] md:text-xs text-zinc-400 tracking-wide">
+                coaching &amp; conseils
+              </span>
             </div>
           </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
             <Link
-              href="/category/packs"
-              className="text-zinc-400 hover:text-yellow-400 transition-colors cursor-pointer"
-            >
-              Packs
-            </Link>
-            <Link
               href="/#nos-categories"
               className="text-zinc-400 hover:text-yellow-400 transition-colors cursor-pointer"
             >
-              Nos Catégories
+              Types
             </Link>
             <Link
               href="/products"
               className="text-zinc-400 hover:text-yellow-400 transition-colors cursor-pointer"
             >
-              Tous les produits
+              Produits
+            </Link>
+            <Link
+              href="/category/packs"
+              className="text-zinc-400 hover:text-yellow-400 transition-colors cursor-pointer"
+            >
+              Packs
             </Link>
           </nav>
 

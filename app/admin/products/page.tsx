@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { collection, deleteDoc, doc, addDoc, updateDoc } from "firebase/firestore"
+import { collection, deleteDoc, doc, addDoc, updateDoc, getDocs } from "firebase/firestore"
 
 import { db } from "@/lib/firebase"
 import { auth } from "@/lib/firebase-auth"
@@ -28,6 +28,15 @@ interface Product {
   isPack?: boolean
 }
 
+interface Category {
+  id: string
+  slug: string
+  label: string
+  imageUrl: string
+  order?: number
+  active?: boolean
+}
+
 const emptyForm: Omit<Product, "id"> = {
   name: "",
   slug: "",
@@ -49,6 +58,48 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState<Omit<Product, "id">>(emptyForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [authChecked, setAuthChecked] = useState(false)
+
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryForm, setCategoryForm] = useState<Omit<Category, "id">>({
+    slug: "",
+    label: "",
+    imageUrl: "",
+    order: undefined,
+    active: true,
+  })
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
+  const [savingCategory, setSavingCategory] = useState(false)
+
+  const productCardRef = useRef<HTMLDivElement | null>(null)
+  const categoryCardRef = useRef<HTMLDivElement | null>(null)
+
+  const loadCategories = async () => {
+    try {
+      const snap = await getDocs(collection(db, "categories"))
+      const items: Category[] = []
+      snap.forEach((d) => {
+        const data = d.data() as any
+        items.push({
+          id: d.id,
+          slug: String(data.slug ?? ""),
+          label: String(data.label ?? ""),
+          imageUrl: String(data.imageUrl ?? ""),
+          order: typeof data.order === "number" ? data.order : undefined,
+          active: typeof data.active === "boolean" ? data.active : true,
+        })
+      })
+
+      items.sort((a, b) => {
+        const ao = a.order ?? 9999
+        const bo = b.order ?? 9999
+        return ao - bo
+      })
+
+      setCategories(items)
+    } catch (err) {
+      console.error("Error loading categories", err)
+    }
+  }
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -76,6 +127,7 @@ export default function AdminProductsPage() {
   useEffect(() => {
     if (!authChecked) return
     void loadProducts()
+    void loadCategories()
   }, [authChecked])
 
   const resetForm = () => {
@@ -130,6 +182,13 @@ export default function AdminProductsPage() {
       isNew: p.isNew ?? false,
       isPack: p.isPack ?? false,
     })
+
+    // Scroll up to the product form card when editing
+    if (productCardRef.current) {
+      productCardRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    } else if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -140,6 +199,78 @@ export default function AdminProductsPage() {
       await loadProducts()
     } catch (err) {
       console.error("Error deleting product", err)
+    }
+  }
+
+  const resetCategoryForm = () => {
+    setCategoryForm({ slug: "", label: "", imageUrl: "", order: undefined, active: true })
+    setEditingCategoryId(null)
+  }
+
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSavingCategory(true)
+    try {
+      const payload = {
+        slug: categoryForm.slug
+          .trim()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/\p{Diacritic}/gu, "")
+          .replace(/&/g, "and")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, ""),
+        label: categoryForm.label.trim(),
+        imageUrl: categoryForm.imageUrl.trim(),
+        order: categoryForm.order ?? null,
+        active: categoryForm.active ?? true,
+      }
+
+      if (!payload.slug || !payload.label) {
+        setSavingCategory(false)
+        return
+      }
+
+      if (editingCategoryId) {
+        await updateDoc(doc(db, "categories", editingCategoryId), payload)
+      } else {
+        await addDoc(collection(db, "categories"), payload)
+      }
+
+      await loadCategories()
+      resetCategoryForm()
+    } catch (err) {
+      console.error("Error saving category", err)
+    } finally {
+      setSavingCategory(false)
+    }
+  }
+
+  const handleCategoryEditClick = (c: Category) => {
+    setEditingCategoryId(c.id)
+    setCategoryForm({
+      slug: c.slug,
+      label: c.label,
+      imageUrl: c.imageUrl,
+      order: c.order,
+      active: c.active ?? true,
+    })
+
+    // Scroll up to the category form card when editing
+    if (categoryCardRef.current) {
+      categoryCardRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+    } else if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
+  }
+
+  const handleCategoryDelete = async (id: string) => {
+    if (!confirm("Supprimer cette catégorie ?")) return
+    try {
+      await deleteDoc(doc(db, "categories", id))
+      await loadCategories()
+    } catch (err) {
+      console.error("Error deleting category", err)
     }
   }
 
@@ -178,8 +309,12 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {/* Formulaire d'ajout / édition */}
-        <Card className="bg-zinc-950 border-zinc-800 p-4 space-y-4">
+        {/* Formulaire d'ajout / édition de produit */}
+        <Card
+          ref={productCardRef}
+          className="bg-zinc-950 border-zinc-800 p-4 space-y-4 scroll-mt-10"
+          id="product-form"
+        >
           <form className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end" onSubmit={handleSubmit}>
             <div className="space-y-1">
               <label className="text-xs text-zinc-400">Nom du produit</label>
@@ -199,16 +334,13 @@ export default function AdminProductsPage() {
                 required
               >
                 <option value="">Sélectionner une catégorie</option>
-                <option value="packs">Packs</option>
-                <option value="proteines">Protéines</option>
-                <option value="creatines">Créatines</option>
-                <option value="mass-gainers">Mass Gainers</option>
-                <option value="pre-workout">Pre-Workout</option>
-                <option value="vitamines">Vitamines</option>
-                <option value="bruleur-de-graisse">Brûleur de Graisse</option>
-                <option value="collagene">Collagène</option>
-                <option value="boosters">Boosters</option>
-                <option value="bars-snacks">Bars & Snacks</option>
+                {categories
+                  .filter((c) => c.active !== false)
+                  .map((c) => (
+                    <option key={c.id} value={c.slug}>
+                      {c.label}
+                    </option>
+                  ))}
               </select>
             </div>
             <div className="space-y-1">
@@ -289,8 +421,7 @@ export default function AdminProductsPage() {
               {editingId && (
                 <Button
                   type="button"
-                  variant="outline"
-                  className="border-zinc-500 text-zinc-200 hover:bg-zinc-900"
+                  className="bg-yellow-400 text-black hover:bg-yellow-500 cursor-pointer"
                   onClick={resetForm}
                   disabled={saving}
                 >
@@ -299,6 +430,159 @@ export default function AdminProductsPage() {
               )}
             </div>
           </form>
+        </Card>
+
+        {/* Gestion des catégories pour "NOS CATÉGORIES" */}
+        <Card
+          ref={categoryCardRef}
+          className="bg-zinc-950 border-zinc-800 p-4 space-y-4 scroll-mt-10"
+          id="category-form"
+        >
+          <div className="flex items-center justify-between gap-4 mb-2">
+            <div>
+              <h2 className="text-lg md:text-xl font-bold">Gestion des catégories</h2>
+              <p className="text-xs md:text-sm text-zinc-400 mt-1">
+                Ces catégories contrôlent les cartes dans la section "Types" de la page d&apos;accueil.
+              </p>
+            </div>
+          </div>
+
+          <form className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end" onSubmit={handleCategorySubmit}>
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Slug</label>
+              <input
+                className="w-full rounded-md bg-black border border-zinc-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                placeholder="ex: proteines, autres"
+                value={categoryForm.slug}
+                onChange={(e) => setCategoryForm((f) => ({ ...f, slug: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Nom affiché</label>
+              <input
+                className="w-full rounded-md bg-black border border-zinc-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                placeholder="Protéines, Autres, ..."
+                value={categoryForm.label}
+                onChange={(e) => setCategoryForm((f) => ({ ...f, label: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-1 md:col-span-2">
+              <label className="text-xs text-zinc-400">URL de l&apos;image</label>
+              <input
+                className="w-full rounded-md bg-black border border-zinc-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                placeholder="https://... ou /images/ma-categorie.jpg"
+                value={categoryForm.imageUrl}
+                onChange={(e) => setCategoryForm((f) => ({ ...f, imageUrl: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Ordre</label>
+              <input
+                type="number"
+                className="w-full rounded-md bg-black border border-zinc-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                placeholder="1, 2, 3..."
+                value={categoryForm.order ?? ""}
+                onChange={(e) =>
+                  setCategoryForm((f) => ({
+                    ...f,
+                    order: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Active ?</label>
+              <select
+                className="w-full rounded-md bg-black border border-zinc-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                value={categoryForm.active ? "true" : "false"}
+                onChange={(e) => setCategoryForm((f) => ({ ...f, active: e.target.value === "true" }))}
+              >
+                <option value="true">Oui</option>
+                <option value="false">Non</option>
+              </select>
+            </div>
+            <div className="flex gap-2 md:col-span-1">
+              <Button
+                type="submit"
+                className="w-full bg-yellow-400 text-black hover:bg-yellow-500 cursor-pointer"
+                disabled={savingCategory}
+              >
+                {editingCategoryId ? "Mettre à jour" : "Ajouter"}
+              </Button>
+              {editingCategoryId && (
+                <Button
+                  type="button"
+                  className="bg-yellow-400 text-black hover:bg-yellow-500 cursor-pointer"
+                  onClick={resetCategoryForm}
+                  disabled={savingCategory}
+                >
+                  Annuler
+                </Button>
+              )}
+            </div>
+          </form>
+
+          {categories.length > 0 && (
+            <div className="mt-4 overflow-x-auto border border-zinc-800 rounded-xl">
+              <table className="min-w-full text-sm">
+                <thead className="bg-zinc-900/80 text-zinc-300">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium">Image</th>
+                    <th className="px-4 py-3 text-left font-medium">Slug</th>
+                    <th className="px-4 py-3 text-left font-medium">Nom</th>
+                    <th className="px-4 py-3 text-left font-medium">Ordre</th>
+                    <th className="px-4 py-3 text-left font-medium">Active</th>
+                    <th className="px-4 py-3 text-left font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800 bg-zinc-950/60">
+                  {categories.map((c) => (
+                    <tr key={c.id} className="hover:bg-zinc-900/70">
+                      <td className="px-4 py-3">
+                        {c.imageUrl ? (
+                          <div className="relative w-16 h-10 rounded-md overflow-hidden bg-zinc-900">
+                            <Image src={c.imageUrl} alt={c.label} fill className="object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-10 rounded-md bg-zinc-900 flex items-center justify-center text-[10px] text-zinc-500">
+                            Aucune
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-zinc-300">{c.slug}</td>
+                      <td className="px-4 py-3 text-white">{c.label}</td>
+                      <td className="px-4 py-3 text-zinc-300">{c.order ?? "-"}</td>
+                      <td className="px-4 py-3 text-zinc-300">{c.active === false ? "Non" : "Oui"}</td>
+                      <td className="px-4 py-3 text-zinc-300">
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="bg-yellow-400 text-black hover:bg-yellow-500 text-xs px-2 py-1 h-7 cursor-pointer"
+                            onClick={() => handleCategoryEditClick(c)}
+                          >
+                            Modifier
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="text-xs px-2 py-1 h-7 cursor-pointer"
+                            onClick={() => handleCategoryDelete(c.id)}
+                          >
+                            Supprimer
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
 
         {loading ? (
@@ -347,9 +631,8 @@ export default function AdminProductsPage() {
                       <div className="flex gap-2">
                         <Button
                           type="button"
-                          variant="outline"
                           size="sm"
-                          className="border-zinc-500 text-xs px-2 py-1 h-7 cursor-pointer"
+                          className="bg-yellow-400 text-black hover:bg-yellow-500 text-xs px-2 py-1 h-7 cursor-pointer"
                           onClick={() => handleEditClick(p)}
                         >
                           Modifier

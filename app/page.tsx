@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ShoppingCart, Shield, Award, Truck, ChevronRight, Star } from "lucide-react"
 import { useCartStore } from "@/lib/cart-store"
-import { collection, query, where, limit } from "firebase/firestore"
+import { collection, query, where, limit, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { CartSidebar } from "@/components/cart-sidebar"
 import { Header } from "@/components/header"
@@ -42,6 +42,15 @@ export default function HomePage() {
   const [saleProducts, setSaleProducts] = useState<HomeProduct[]>([])
   const [newProducts, setNewProducts] = useState<HomeProduct[]>([])
   const [loadingHome, setLoadingHome] = useState(true)
+  const [categories, setCategories] = useState<
+    Array<{
+      slug: string
+      label: string
+      imageUrl: string
+      order?: number
+      active?: boolean
+    }>
+  >([])
 
   useEffect(() => {
     const loadHomepageProducts = async () => {
@@ -82,6 +91,33 @@ export default function HomePage() {
 
         setSaleProducts(saleItems)
         setNewProducts(newItems)
+
+        try {
+          const catSnap = await getDocs(collection(db, "categories"))
+          const catItems: typeof categories = []
+          catSnap.forEach((doc) => {
+            const data = doc.data() as any
+            if (data && data.slug && data.label && data.imageUrl) {
+              catItems.push({
+                slug: String(data.slug),
+                label: String(data.label),
+                imageUrl: String(data.imageUrl),
+                order: typeof data.order === "number" ? data.order : undefined,
+                active: typeof data.active === "boolean" ? data.active : true,
+              })
+            }
+          })
+
+          catItems.sort((a, b) => {
+            const ao = a.order ?? 9999
+            const bo = b.order ?? 9999
+            return ao - bo
+          })
+
+          setCategories(catItems.filter((c) => c.active !== false))
+        } catch (e) {
+          console.error("Error loading homepage categories", e)
+        }
       } catch (e) {
         console.error("Error loading homepage products", e)
       } finally {
@@ -91,19 +127,6 @@ export default function HomePage() {
 
     void loadHomepageProducts()
   }, [])
-
-  const categories = [
-    { label: "Packs", image: "/images/pack.webp" },
-    { label: "Protéines", image: "/images/protien.jpg" },
-    { label: "Créatines", image: "/images/creatine.jpg" },
-    { label: "Mass Gainers", image: "/images/massgainer.jpg" },
-    { label: "Pre-Workout", image: "/images/preworkout.jpg" },
-    { label: "Vitamines", image: "/images/vitamine.jpg" },
-    { label: "Brûleur de Graisse", image: "/images/bru.webp" },
-    { label: "COLLAGENE", image: "/images/collagen.jpg" },
-    { label: "Boosters", image: "/images/boosters.jpg" },
-    { label: "Bars & Snacks", image: "/images/snacks.jpg" },
-  ]
 
   const saleList = saleProducts
   const newList = newProducts
@@ -123,7 +146,11 @@ export default function HomePage() {
         />
         <div className="relative z-20 container mx-auto px-4 h-full flex items-center">
           <div className="max-w-2xl">
-            <h1 className="hidden md:block text-5xl md:text-6xl font-bold text-white mb-6 text-balance">Élevez Votre Performance</h1>
+            <h1 className="hidden md:block text-5xl md:text-6xl font-bold text-white mb-6 text-balance">
+              <span className="text-yellow-500">The</span> Power
+              <br />
+              To Change
+            </h1>
 
             <div className="flex flex-wrap gap-4">
               <Button
@@ -149,44 +176,34 @@ export default function HomePage() {
       <section id="nos-categories" className="border-y border-zinc-800 bg-zinc-950">
         <div className="container mx-auto px-4 py-10 space-y-6">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-wide">NOS CATÉGORIES</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-wide">Types</h2>
             <div className="hidden md:block h-px flex-1 bg-zinc-800" />
           </div>
 
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900">
-            {categories.map((category) => {
-              const slug = category.label
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/\p{Diacritic}/gu, "")
-                .replace(/&/g, "and")
-                .replace(/[^a-z0-9]+/g, "-")
-                .replace(/^-+|-+$/g, "")
-
-              return (
-                <Link
-                  key={category.label}
-                  href={`/category/${slug}`}
-                  className="min-w-[190px] max-w-[210px] cursor-pointer"
-                >
-                  <Card className="text-card-foreground flex flex-col gap-6 py-0 bg-black border border-zinc-800 hover:border-yellow-400 transition-all duration-300 group shadow-sm hover:shadow-lg overflow-hidden rounded-2xl h-full">
-                    <CardContent className="p-0 h-full flex flex-col">
-                      <div className="relative h-full w-full overflow-hidden">
-                        <img
-                          src={category.image}
-                          alt={category.label}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-white bg-black">
-                        <span>{category.label}</span>
-                        <ChevronRight className="w-4 h-4 text-zinc-300 group-hover:text-yellow-400 transition-colors" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
+            {categories.map((category) => (
+              <Link
+                key={category.slug}
+                href={`/category/${category.slug}`}
+                className="min-w-[190px] max-w-[210px] cursor-pointer"
+              >
+                <Card className="text-card-foreground flex flex-col gap-6 py-0 bg-black border border-zinc-800 hover:border-yellow-400 transition-all duration-300 group shadow-sm hover:shadow-lg overflow-hidden rounded-2xl h-full">
+                  <CardContent className="p-0 h-full flex flex-col">
+                    <div className="relative h-[280px] w-full overflow-hidden">
+                      <img
+                        src={category.imageUrl || "/placeholder.svg"}
+                        alt={category.label}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-3 text-sm font-medium text-white bg-black">
+                      <span>{category.label}</span>
+                      <ChevronRight className="w-4 h-4 text-zinc-300 group-hover:text-yellow-400 transition-colors" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -439,25 +456,18 @@ export default function HomePage() {
       </section>
 
       
-      {/* Stats bar */}
+      {/* Stats / value proposition bar */}
       <section className="bg-black pb-20">
         <div className="container mx-auto px-4">
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center space-y-2 p-6 rounded-xl bg-zinc-900/30 border border-zinc-800">
-              <div className="text-4xl font-bold text-yellow-400">50K+</div>
-              <div className="text-sm text-zinc-400">Clients Satisfaits</div>
+              <div className="text-2xl md:text-3xl font-bold text-yellow-400">Qualité prémium</div>
             </div>
             <div className="text-center space-y-2 p-6 rounded-xl bg-zinc-900/30 border border-zinc-800">
-              <div className="text-4xl font-bold text-yellow-400">99.9%</div>
-              <div className="text-sm text-zinc-400">Pureté Garantie</div>
+              <div className="text-2xl md:text-3xl font-bold text-yellow-400">100% Original</div>
             </div>
             <div className="text-center space-y-2 p-6 rounded-xl bg-zinc-900/30 border border-zinc-800">
-              <div className="text-4xl font-bold text-yellow-400">24/7</div>
-              <div className="text-sm text-zinc-400">Support Client</div>
-            </div>
-            <div className="text-center space-y-2 p-6 rounded-xl bg-zinc-900/30 border border-zinc-800">
-              <div className="text-4xl font-bold text-yellow-400">100%</div>
-              <div className="text-sm text-zinc-400">Testé en Laboratoire</div>
+              <div className="text-2xl md:text-3xl font-bold text-yellow-400">Coaching &amp; Conseils</div>
             </div>
           </div>
         </div>
@@ -475,12 +485,6 @@ export default function HomePage() {
                   <a href="tel:0561063005" className="hover:text-yellow-400 cursor-pointer flex items-center gap-2">
                     <span className="text-lg">📞</span>
                     <span>0561 06 30 05</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="tel:0550156671" className="hover:text-yellow-400 cursor-pointer flex items-center gap-2">
-                    <span className="text-lg">📞</span>
-                    <span>0550 15 66 71</span>
                   </a>
                 </li>
               </ul>

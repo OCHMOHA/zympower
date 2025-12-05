@@ -12,7 +12,7 @@ import { db } from "@/lib/firebase"
 import { useCartStore } from "@/lib/cart-store"
 
 export default function AllProductsPage() {
-  const { addItem } = useCartStore()
+  const { addItem, toggleCart } = useCartStore()
   const [products, setProducts] = useState<
     Array<{
       id: string
@@ -52,7 +52,7 @@ export default function AllProductsPage() {
     void load()
   }, [])
 
-  const handleAdd = (product: (typeof products)[0]) => {
+  const addProductToCart = (product: (typeof products)[0]) => {
     addItem({
       id: product.id,
       name: product.name,
@@ -65,6 +65,11 @@ export default function AllProductsPage() {
     } as any)
   }
 
+  const handleBuyNow = (product: (typeof products)[0]) => {
+    addProductToCart(product)
+    toggleCart()
+  }
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Header />
@@ -73,7 +78,7 @@ export default function AllProductsPage() {
       <div className="bg-black/95">
         <div className="container mx-auto px-4 py-6">
           <div className="inline-block">
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide">Tous les Produits</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide">Nos Produits</h1>
             <div className="h-px bg-yellow-400 mt-2 w-full" />
           </div>
           <p className="text-xs md:text-sm text-zinc-400 mt-3">
@@ -118,7 +123,7 @@ export default function AllProductsPage() {
                   <div className="px-3 pb-3 pt-1.5 space-y-2">
                     <Button
                       className="w-full bg-black text-white hover:bg-zinc-900 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer"
-                      onClick={() => handleAdd(product)}
+                      onClick={() => addProductToCart(product)}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Ajouter au panier
@@ -126,7 +131,7 @@ export default function AllProductsPage() {
                     <Button
                       variant="outline"
                       className="w-full border-zinc-800 text-black hover:bg-zinc-100 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer"
-                      onClick={() => handleAdd(product)}
+                      onClick={() => handleBuyNow(product)}
                     >
                       Acheter maintenant
                     </Button>
