@@ -26,6 +26,8 @@ interface Product {
   onSale?: boolean
   isNew?: boolean
   isPack?: boolean
+  available?: boolean
+  order?: number
 }
 
 interface Category {
@@ -48,6 +50,8 @@ const emptyForm: Omit<Product, "id"> = {
   onSale: false,
   isNew: false,
   isPack: false,
+   available: true,
+  order: undefined,
 }
 
 export default function AdminProductsPage() {
@@ -150,6 +154,8 @@ export default function AdminProductsPage() {
         onSale: form.onSale ?? false,
         isNew: form.isNew ?? false,
         isPack: form.isPack ?? false,
+        available: form.available ?? true,
+        order: form.order ?? null,
       }
 
       if (editingId) {
@@ -181,6 +187,8 @@ export default function AdminProductsPage() {
       onSale: p.onSale ?? false,
       isNew: p.isNew ?? false,
       isPack: p.isPack ?? false,
+      available: p.available ?? true,
+      order: p.order,
     })
 
     // Scroll up to the product form card when editing
@@ -334,13 +342,12 @@ export default function AdminProductsPage() {
                 required
               >
                 <option value="">Sélectionner une catégorie</option>
-                {categories
-                  .filter((c) => c.active !== false)
-                  .map((c) => (
-                    <option key={c.id} value={c.slug}>
-                      {c.label}
-                    </option>
-                  ))}
+                {categories.map((c) => (
+                  <option key={c.id} value={c.slug}>
+                    {c.label}
+                    {c.active === false ? " (inactif)" : ""}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="space-y-1">
@@ -366,6 +373,21 @@ export default function AdminProductsPage() {
                 <option value="true">Oui</option>
               </select>
             </div>
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Ordre</label>
+              <input
+                type="number"
+                className="w-full rounded-md bg-black border border-zinc-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                placeholder="1, 2, 3..."
+                value={form.order ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    order: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }
+              />
+            </div>
             <div className="space-y-1 md:col-span-2">
               <label className="text-xs text-zinc-400">URL de l&apos;image</label>
               <input
@@ -387,6 +409,17 @@ export default function AdminProductsPage() {
                   setForm((f) => ({ ...f, discount: e.target.value ? Number(e.target.value) : 0 }))
                 }
               />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-400">Disponible ?</label>
+              <select
+                className="w-full rounded-md bg-black border border-zinc-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                value={form.available ? "true" : "false"}
+                onChange={(e) => setForm((f) => ({ ...f, available: e.target.value === "true" }))}
+              >
+                <option value="true">Oui</option>
+                <option value="false">Non</option>
+              </select>
             </div>
             <div className="space-y-1">
               <label className="text-xs text-zinc-400">En solde ?</label>
@@ -413,7 +446,7 @@ export default function AdminProductsPage() {
             <div className="flex gap-2 md:col-span-1">
               <Button
                 type="submit"
-                className="w-full bg-yellow-400 text-black hover:bg-yellow-500 cursor-pointer"
+                className="bg-yellow-400 text-black hover:bg-yellow-500 px-4 md:px-6 cursor-pointer"
                 disabled={saving}
               >
                 {editingId ? "Mettre à jour" : "Ajouter"}
@@ -507,7 +540,7 @@ export default function AdminProductsPage() {
             <div className="flex gap-2 md:col-span-1">
               <Button
                 type="submit"
-                className="w-full bg-yellow-400 text-black hover:bg-yellow-500 cursor-pointer"
+                className="bg-yellow-400 text-black hover:bg-yellow-500 px-4 md:px-6 cursor-pointer"
                 disabled={savingCategory}
               >
                 {editingCategoryId ? "Mettre à jour" : "Ajouter"}

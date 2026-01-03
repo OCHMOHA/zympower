@@ -21,6 +21,8 @@ export default function AllProductsPage() {
       priceDa?: number
       imageUrl?: string
       categorySlug?: string
+      discount?: number
+      order?: number
     }>
   >([])
   const [loading, setLoading] = useState(true)
@@ -39,7 +41,14 @@ export default function AllProductsPage() {
             priceDa: data.priceDa,
             imageUrl: data.imageUrl,
             categorySlug: (data.categorySlug ?? data.categorySLug ?? "").toString().trim().toLowerCase(),
+            discount: typeof data.discount === "number" ? data.discount : undefined,
+            order: typeof data.order === "number" ? data.order : undefined,
           })
+        })
+        items.sort((a, b) => {
+          const ao = a.order ?? 9999
+          const bo = b.order ?? 9999
+          return ao - bo
         })
         setProducts(items)
       } catch (e) {
@@ -94,13 +103,24 @@ export default function AllProductsPage() {
           <p className="text-sm text-zinc-400">Aucun produit disponible pour le moment.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {products.map((product) => (
+            {products.map((product) => {
+              const hasDiscount = typeof product.discount === "number" && product.discount! > 0
+              const discountPercent = hasDiscount ? (product.discount as number) : 0
+              const basePrice = product.priceDa ?? 0
+              const discountedPrice = hasDiscount ? Math.round(basePrice * (1 - discountPercent / 100)) : basePrice
+
+              return (
               <Card
                 key={product.id}
                 className="bg-white text-zinc-900 border border-zinc-200 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-xl overflow-hidden h-full"
               >
                 <CardContent className="p-0 flex flex-col h-full">
                   <div className="relative aspect-[16/11] bg-white overflow-hidden flex items-center justify-center">
+                    {hasDiscount && (
+                      <div className="absolute top-3 right-3 z-10 px-2 py-1 rounded text-xs md:text-sm font-bold bg-red-500 text-white shadow">
+                        -{discountPercent}%
+                      </div>
+                    )}
                     <img
                       src={product.imageUrl || "/placeholder.svg"}
                       alt={product.name}
@@ -111,10 +131,23 @@ export default function AllProductsPage() {
                     <h3 className="font-semibold text-xs md:text-sm leading-snug text-zinc-900 line-clamp-2">
                       {product.name}
                     </h3>
-                    <div>
-                      <span className="text-sm font-extrabold text-zinc-900">
-                        {product.priceDa != null ? product.priceDa.toLocaleString("fr-DZ") : "-"} DA
-                      </span>
+                    <div className="space-y-1">
+                      {hasDiscount ? (
+                        <>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-xs text-zinc-500 line-through">
+                              {basePrice.toLocaleString("fr-DZ")} DA
+                            </span>
+                            <span className="text-sm font-extrabold text-red-500">
+                              {discountedPrice.toLocaleString("fr-DZ")} DA
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-sm font-extrabold text-zinc-900">
+                          {product.priceDa != null ? product.priceDa.toLocaleString("fr-DZ") : "-"} DA
+                        </span>
+                      )}
                     </div>
                     {product.brand && (
                       <p className="text-[11px] text-zinc-500">{product.brand}</p>
@@ -138,7 +171,7 @@ export default function AllProductsPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )})}
           </div>
         )}
       </div>

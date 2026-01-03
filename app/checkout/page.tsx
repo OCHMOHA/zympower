@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useCartStore } from "@/lib/cart-store"
 import { CartSidebar } from "@/components/cart-sidebar"
 import { Button } from "@/components/ui/button"
+import { Header } from "@/components/header"
 import { tarifsLivraison, communesParWilaya, bureauxNoest, BureauNoest, wilayaNames } from "@/lib/geo"
 
 // Build wilaya list dynamically from communesParWilaya keys for the select
@@ -112,20 +113,7 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-zinc-100">
-      <header className="border-b border-zinc-800 bg-black/95 backdrop-blur sticky top-0 z-40">
-        <div className="px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-black text-white tracking-tight leading-none">
-                Zym<span className="text-yellow-400">Power</span>
-              </span>
-              <span className="text-[10px] text-zinc-500 tracking-widest uppercase">
-                Suppléments de Performance
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <CartSidebar />
 

@@ -15,14 +15,16 @@ import { CartSidebar } from "@/components/cart-sidebar"
 const categoryLabels: Record<string, string> = {
   packs: "Packs",
   proteines: "Protéines",
-  creatines: "Créatines",
+  creatine: "Créatine",
   "mass-gainers": "Mass Gainers",
   "pre-workout": "Pre-Workout",
   vitamines: "Vitamines",
   "bruleur-de-graisse": "Brûleur de Graisse",
-  collagene: "COLLAGENE",
+  collagene: "Collagène",
   boosters: "Boosters",
   "bars-snacks": "Bars & Snacks",
+  "fat-burner-perte-de-poids": "Fat Burner (perte de poids)",
+  "acides-amines": "Acides Aminés",
 }
 
 export default function CategoryPage() {
@@ -37,6 +39,9 @@ export default function CategoryPage() {
       priceDa?: number
       imageUrl?: string
       categorySlug?: string
+      discount?: number
+      order?: number
+      available?: boolean
     }>
   >([])
   const [loading, setLoading] = useState(true)
@@ -68,8 +73,16 @@ export default function CategoryPage() {
               imageUrl: data.imageUrl,
               // Normalised category slug for the UI model
               categorySlug: docCategory,
+              discount: typeof data.discount === "number" ? data.discount : undefined,
+              order: typeof data.order === "number" ? data.order : undefined,
+              available: typeof data.available === "boolean" ? data.available : true,
             })
           }
+        })
+        items.sort((a, b) => {
+          const ao = a.order ?? 9999
+          const bo = b.order ?? 9999
+          return ao - bo
         })
         setProducts(items)
       } catch (e) {
@@ -128,48 +141,83 @@ export default function CategoryPage() {
             </p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((product) => (
-                <Card
-                  key={product.id}
-                  className="bg-white text-zinc-900 border border-zinc-200 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-xl overflow-hidden h-full"
-                >
-                  <CardContent className="p-0 flex flex-col h-full">
-                    <div className="relative aspect-[16/11] bg-white overflow-hidden flex items-center justify-center">
-                      <img
-                        src={product.imageUrl || "/placeholder.svg"}
-                        alt={product.name}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="flex-1 px-3 py-2 space-y-2">
-                      <h3 className="font-semibold text-xs md:text-sm leading-snug text-zinc-900 line-clamp-2">
-                        {product.name}
-                      </h3>
-                      <div>
-                        <span className="text-sm font-extrabold text-zinc-900">
-                          {product.priceDa != null ? product.priceDa.toLocaleString("fr-DZ") : "-"} DA
-                        </span>
+              {products.map((product) => {
+                const hasDiscount = typeof product.discount === "number" && product.discount! > 0
+                const discountPercent = hasDiscount ? (product.discount as number) : 0
+                const basePrice = product.priceDa ?? 0
+                const discountedPrice = hasDiscount
+                  ? Math.round(basePrice * (1 - discountPercent / 100))
+                  : basePrice
+                const isAvailable = (product as any).available !== false
+
+                return (
+                  <Card
+                    key={product.id}
+                    className="bg-white text-zinc-900 border border-zinc-200 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-xl overflow-hidden h-full"
+                  >
+                    <CardContent className="p-0 flex flex-col h-full">
+                      <div className="relative aspect-[16/11] bg-white overflow-hidden flex items-center justify-center">
+                        {hasDiscount && (
+                          <div className="absolute top-3 right-3 z-10 px-2 py-1 rounded text-xs md:text-sm font-bold bg-red-500 text-white shadow">
+                            -{discountPercent}%
+                          </div>
+                        )}
+                        <img
+                          src={product.imageUrl || "/placeholder.svg"}
+                          alt={product.name}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        />
                       </div>
-                    </div>
-                    <div className="px-3 pb-3 pt-1.5 space-y-2">
-                      <Button
-                        className="w-full bg-black text-white hover:bg-zinc-900 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer"
-                        onClick={() => addProductToCart(product)}
-                      >
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Ajouter au panier
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full border-zinc-800 text-black hover:bg-zinc-100 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer"
-                        onClick={() => handleBuyNow(product)}
-                      >
-                        Acheter maintenant
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="flex-1 px-3 py-2 space-y-2">
+                        <h3 className="font-semibold text-xs md:text-sm leading-snug text-zinc-900 line-clamp-2">
+                          {product.name}
+                        </h3>
+                        <div className="space-y-1">
+                          {hasDiscount ? (
+                            <>
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-xs text-zinc-500 line-through">
+                                  {basePrice.toLocaleString("fr-DZ")} DA
+                                </span>
+                                <span className="text-sm font-extrabold text-red-500">
+                                  {discountedPrice.toLocaleString("fr-DZ")} DA
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <span className="text-sm font-extrabold text-zinc-900">
+                              {product.priceDa != null ? product.priceDa.toLocaleString("fr-DZ") : "-"} DA
+                            </span>
+                          )}
+                        </div>
+                        {!isAvailable && (
+                          <p className="text-[11px] font-semibold text-red-600 uppercase tracking-wide">
+                            Produit indisponible
+                          </p>
+                        )}
+                      </div>
+                      <div className="px-3 pb-3 pt-1.5 space-y-2">
+                        <Button
+                          className="w-full bg-black text-white hover:bg-zinc-900 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black"
+                          onClick={() => isAvailable && addProductToCart(product)}
+                          disabled={!isAvailable}
+                        >
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          Ajouter au panier
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full border-zinc-800 text-black hover:bg-zinc-100 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          onClick={() => isAvailable && handleBuyNow(product)}
+                          disabled={!isAvailable}
+                        >
+                          Acheter maintenant
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           )}
         </section>

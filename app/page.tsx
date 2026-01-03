@@ -137,16 +137,15 @@ export default function HomePage() {
       <CartSidebar />
 
       {/* Hero Section */}
-      <section className="relative h-[600px] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent z-10" />
+      <section className="relative h-[600px] overflow-hidden bg-black">
         <img
-          src="/images/herobg.jpg"
+          src="/images/bgheroo.jpg"
           alt="Zym Power Suppléments de Performance"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-[50%_40%]"
         />
         <div className="relative z-20 container mx-auto px-4 h-full flex items-center">
           <div className="max-w-2xl">
-            <h1 className="hidden md:block text-5xl md:text-6xl font-bold text-white mb-6 text-balance">
+            <h1 className="hidden md:block text-5xl md:text-6xl font-bold text-white mb-2 md:mb-6 text-balance">
               <span className="text-yellow-500">The</span> Power
               <br />
               To Change
@@ -155,7 +154,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-4">
               <Button
                 size="lg"
-                className="mt-52 md:mt-0 bg-yellow-400 text-black hover:bg-yellow-500 cursor-pointer"
+                className="mt-120 md:mt-0 bg-yellow-400 text-black hover:bg-yellow-500 cursor-pointer"
                 onClick={() => {
                   const el = document.getElementById("produits-en-solde")
                   if (el) {
@@ -208,7 +207,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Produits en Solde */}
+      {/* Produits en Promotion */}
       <section id="produits-en-solde" className="py-24 relative overflow-hidden bg-zinc-950/60">
         <div className="absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-yellow-900/10 via-transparent to-transparent" />
@@ -217,13 +216,13 @@ export default function HomePage() {
           <div className="flex flex-col gap-4 mb-10">
             <div className="flex items-start gap-4">
               <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-wide">
-                PRODUITS EN SOLDE
+                PRODUITS EN PROMOTION
               </h2>
             </div>
             <div className="space-y-3">
               <div className="h-px w-24 bg-yellow-400" />
               <p className="text-sm md:text-base text-zinc-400 max-w-xl text-pretty">
-                Profitez de nos meilleures offres sur une sélection de produits de performance. Quantités limitées.
+                Découvrez nos offres du moment sur une sélection de produits. Quantités limitées.
               </p>
             </div>
           </div>
@@ -259,7 +258,7 @@ export default function HomePage() {
                     <Card className="bg-white text-zinc-900 border border-zinc-200 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-xl overflow-hidden h-full relative">
                       <CardContent className="p-0 flex flex-col h-full">
                         <div className="relative aspect-[16/11] bg-white overflow-hidden">
-                          <div className="absolute top-3 right-3 z-10 px-2 py-1 rounded text-[11px] font-semibold bg-red-500 text-white shadow">
+                          <div className="absolute top-3 right-3 z-10 px-2 py-1 rounded text-xs md:text-sm font-bold bg-red-500 text-white shadow">
                             -{discountPercent}%
                           </div>
                           <img
@@ -479,7 +478,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             {/* Contact */}
             <div>
-              <h4 className="font-semibold text-white mb-4">CONTACT</h4>
+              <h4 className="font-semibold text-white mb-4">CONTACTEZ-NOUS</h4>
               <ul className="space-y-2 text-sm text-zinc-400">
                 <li>
                   <a href="tel:0561063005" className="hover:text-yellow-400 cursor-pointer flex items-center gap-2">
