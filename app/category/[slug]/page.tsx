@@ -42,6 +42,7 @@ export default function CategoryPage() {
       discount?: number
       order?: number
       available?: boolean
+      promoPriceDa?: number
     }>
   >([])
   const [loading, setLoading] = useState(true)
@@ -76,6 +77,7 @@ export default function CategoryPage() {
               discount: typeof data.discount === "number" ? data.discount : undefined,
               order: typeof data.order === "number" ? data.order : undefined,
               available: typeof data.available === "boolean" ? data.available : true,
+              promoPriceDa: typeof data.promoPriceDa === "number" ? data.promoPriceDa : undefined,
             })
           }
         })
@@ -145,9 +147,13 @@ export default function CategoryPage() {
                 const hasDiscount = typeof product.discount === "number" && product.discount! > 0
                 const discountPercent = hasDiscount ? (product.discount as number) : 0
                 const basePrice = product.priceDa ?? 0
-                const discountedPrice = hasDiscount
+                const computedDiscounted = hasDiscount
                   ? Math.round(basePrice * (1 - discountPercent / 100))
                   : basePrice
+                const discountedPrice =
+                  hasDiscount && typeof product.promoPriceDa === "number"
+                    ? product.promoPriceDa
+                    : computedDiscounted
                 const isAvailable = (product as any).available !== false
 
                 return (

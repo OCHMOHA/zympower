@@ -23,6 +23,7 @@ export default function AllProductsPage() {
       categorySlug?: string
       discount?: number
       order?: number
+      promoPriceDa?: number
     }>
   >([])
   const [loading, setLoading] = useState(true)
@@ -43,6 +44,7 @@ export default function AllProductsPage() {
             categorySlug: (data.categorySlug ?? data.categorySLug ?? "").toString().trim().toLowerCase(),
             discount: typeof data.discount === "number" ? data.discount : undefined,
             order: typeof data.order === "number" ? data.order : undefined,
+            promoPriceDa: typeof data.promoPriceDa === "number" ? data.promoPriceDa : undefined,
           })
         })
         items.sort((a, b) => {
@@ -107,7 +109,11 @@ export default function AllProductsPage() {
               const hasDiscount = typeof product.discount === "number" && product.discount! > 0
               const discountPercent = hasDiscount ? (product.discount as number) : 0
               const basePrice = product.priceDa ?? 0
-              const discountedPrice = hasDiscount ? Math.round(basePrice * (1 - discountPercent / 100)) : basePrice
+              const computedDiscounted = hasDiscount ? Math.round(basePrice * (1 - discountPercent / 100)) : basePrice
+              const discountedPrice =
+                hasDiscount && typeof product.promoPriceDa === "number"
+                  ? product.promoPriceDa
+                  : computedDiscounted
 
               return (
               <Card

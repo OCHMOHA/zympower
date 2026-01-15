@@ -20,6 +20,7 @@ interface Product {
   slug?: string
   categorySlug?: string
   priceDa?: number
+  promoPriceDa?: number
   brand?: string
   imageUrl?: string
   discount?: number
@@ -44,6 +45,7 @@ const emptyForm: Omit<Product, "id"> = {
   slug: "",
   categorySlug: "",
   priceDa: undefined,
+  promoPriceDa: undefined,
   brand: "",
   imageUrl: "",
   discount: 0,
@@ -143,14 +145,23 @@ export default function AdminProductsPage() {
     e.preventDefault()
     setSaving(true)
     try {
+      const basePrice = form.priceDa ?? 0
+      const promoPrice = form.promoPriceDa ?? undefined
+
+      let discountPercent = 0
+      if (basePrice > 0 && promoPrice != null && promoPrice > 0 && promoPrice < basePrice) {
+        discountPercent = Math.round(((basePrice - promoPrice) / basePrice) * 100)
+      }
+
       const payload = {
         name: form.name.trim(),
         slug: (form.slug || form.name).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""),
         categorySlug: form.categorySlug?.trim().toLowerCase() || "",
-        priceDa: form.priceDa ?? 0,
+        priceDa: basePrice,
         brand: form.brand?.trim() || "",
         imageUrl: form.imageUrl?.trim() || "",
-        discount: form.discount ?? 0,
+        discount: discountPercent,
+        promoPriceDa: promoPrice ?? null,
         onSale: form.onSale ?? false,
         isNew: form.isNew ?? false,
         isPack: form.isPack ?? false,
@@ -181,6 +192,7 @@ export default function AdminProductsPage() {
       slug: p.slug,
       categorySlug: p.categorySlug,
       priceDa: p.priceDa,
+      promoPriceDa: p.priceDa && p.discount ? Math.round((p.priceDa * (1 - (p.discount ?? 0) / 100)) / 10) * 10 : undefined,
       brand: p.brand,
       imageUrl: p.imageUrl,
       discount: p.discount ?? 0,
@@ -398,15 +410,18 @@ export default function AdminProductsPage() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-zinc-400">Remise (%)</label>
+              <label className="text-xs text-zinc-400">Prix en promotion (DA)</label>
               <input
                 type="number"
                 min={0}
-                max={100}
                 className="w-full rounded-md bg-black border border-zinc-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
-                value={form.discount ?? 0}
+                placeholder={form.priceDa != null ? `${form.priceDa}` : "ex: 25000"}
+                value={form.promoPriceDa ?? ""}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, discount: e.target.value ? Number(e.target.value) : 0 }))
+                  setForm((f) => ({
+                    ...f,
+                    promoPriceDa: e.target.value ? Number(e.target.value) : undefined,
+                  }))
                 }
               />
             </div>

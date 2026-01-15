@@ -29,6 +29,7 @@ export default function HomePage() {
     rating: number
     reviews: number
     discount?: number
+    promoPriceDa?: number
   }
 
   const handleAddToCart = (product: HomeProduct, e: React.MouseEvent) => {
@@ -71,7 +72,8 @@ export default function HomePage() {
           category: data.categorySlug ?? "",
           rating: data.rating ?? 0,
           reviews: data.reviews ?? 0,
-          discount: data.discount ?? undefined,
+          discount: typeof data.discount === "number" ? data.discount : undefined,
+          promoPriceDa: typeof data.promoPriceDa === "number" ? data.promoPriceDa : undefined,
         }))
 
         const newDocs = await getCachedQuery<any[]>(
@@ -87,6 +89,8 @@ export default function HomePage() {
           category: data.categorySlug ?? "",
           rating: data.rating ?? 0,
           reviews: data.reviews ?? 0,
+          discount: typeof data.discount === "number" ? data.discount : undefined,
+          promoPriceDa: typeof data.promoPriceDa === "number" ? data.promoPriceDa : undefined,
         }))
 
         setSaleProducts(saleItems)
@@ -245,9 +249,18 @@ export default function HomePage() {
               className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth [&::-webkit-scrollbar]:hidden [scrollbar-width:none] [-ms-overflow-style:'none']"
             >
               {saleList.map((product, index) => {
-                const discountPercent =
-                  typeof (product as any).discount === "number" ? (product as any).discount : 15
-                const originalPrice = product.price / (1 - discountPercent / 100)
+                const hasDiscount = typeof product.discount === "number" && product.discount! > 0
+                const discountPercent = hasDiscount ? (product.discount as number) : 0
+
+                // Base price is the non-discounted reference
+                const basePrice = hasDiscount && typeof product.promoPriceDa === "number"
+                  ? Math.round((product.promoPriceDa * 100) / (100 - discountPercent))
+                  : product.price
+
+                const effectivePrice =
+                  hasDiscount && typeof product.promoPriceDa === "number"
+                    ? product.promoPriceDa
+                    : product.price
 
                 return (
                   <div
@@ -287,10 +300,10 @@ export default function HomePage() {
                           <div className="space-y-1">
                             <div className="flex items-baseline gap-2">
                               <span className="text-xs text-zinc-500 line-through">
-                                {Math.round(originalPrice).toLocaleString("fr-DZ")} DA
+                                {Math.round(basePrice).toLocaleString("fr-DZ")} DA
                               </span>
                               <span className="text-sm font-extrabold text-red-500">
-                                {Math.round(product.price).toLocaleString("fr-DZ")} DA
+                                {Math.round(effectivePrice).toLocaleString("fr-DZ")} DA
                               </span>
                             </div>
                             <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">
