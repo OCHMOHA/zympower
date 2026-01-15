@@ -63,12 +63,12 @@ export default function AllProductsPage() {
     void load()
   }, [])
 
-  const addProductToCart = (product: (typeof products)[0]) => {
+  const addProductToCart = (product: (typeof products)[0], price: number) => {
     addItem({
       id: product.id,
       name: product.name,
       brand: product.brand ?? "",
-      price: (product.priceDa ?? 0) / 1,
+      price,
       image: product.imageUrl ?? "/placeholder.svg",
       category: product.categorySlug ?? "",
       rating: 0,
@@ -76,8 +76,8 @@ export default function AllProductsPage() {
     } as any)
   }
 
-  const handleBuyNow = (product: (typeof products)[0]) => {
-    addProductToCart(product)
+  const handleBuyNow = (product: (typeof products)[0], price: number) => {
+    addProductToCart(product, price)
     toggleCart()
   }
 
@@ -162,7 +162,7 @@ export default function AllProductsPage() {
                   <div className="px-3 pb-3 pt-1.5 space-y-2">
                     <Button
                       className="w-full bg-black text-white hover:bg-zinc-900 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer"
-                      onClick={() => addProductToCart(product)}
+                      onClick={() => addProductToCart(product, discountedPrice)}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
                       Ajouter au panier
@@ -170,7 +170,7 @@ export default function AllProductsPage() {
                     <Button
                       variant="outline"
                       className="w-full border-zinc-800 text-black hover:bg-zinc-100 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer"
-                      onClick={() => handleBuyNow(product)}
+                      onClick={() => handleBuyNow(product, discountedPrice)}
                     >
                       Acheter maintenant
                     </Button>

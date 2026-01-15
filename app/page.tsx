@@ -30,6 +30,7 @@ export default function HomePage() {
     reviews: number
     discount?: number
     promoPriceDa?: number
+    basePriceDa?: number
   }
 
   const handleAddToCart = (product: HomeProduct, e: React.MouseEvent) => {
@@ -63,35 +64,62 @@ export default function HomePage() {
           "homepage-sale",
           query(base, where("onSale", "==", true), limit(12)),
         )
-        const saleItems: HomeProduct[] = saleDocs.map((data: any) => ({
-          id: String(data.id ?? data.slug ?? data.name),
-          name: data.name,
-          brand: data.brand ?? "",
-          price: data.priceDa ?? 0,
-          image: data.imageUrl ?? "/placeholder.svg",
-          category: data.categorySlug ?? "",
-          rating: data.rating ?? 0,
-          reviews: data.reviews ?? 0,
-          discount: typeof data.discount === "number" ? data.discount : undefined,
-          promoPriceDa: typeof data.promoPriceDa === "number" ? data.promoPriceDa : undefined,
-        }))
+        const saleItems: HomeProduct[] = saleDocs.map((data: any) => {
+          const base = data.priceDa ?? 0
+          const discount = typeof data.discount === "number" ? data.discount : 0
+          const storedPromo = typeof data.promoPriceDa === "number" ? data.promoPriceDa : undefined
+          const effectivePrice =
+            storedPromo != null
+              ? storedPromo
+              : discount > 0
+                ? Math.round(base * (1 - discount / 100))
+                : base
+
+          return {
+            id: data.id,
+            name: data.name,
+            brand: data.brand ?? "",
+            price: effectivePrice, // this is what goes into the cart
+            image: data.imageUrl ?? "/placeholder.svg",
+            category: data.categorySlug ?? "",
+            rating: data.rating ?? 0,
+            reviews: data.reviews ?? 0,
+            discount: discount || undefined,
+            promoPriceDa: storedPromo,
+            basePriceDa: base,
+          }
+        })
 
         const newDocs = await getCachedQuery<any[]>(
           "homepage-new",
           query(base, where("isNew", "==", true), limit(12)),
         )
-        const newItems: HomeProduct[] = newDocs.map((data: any) => ({
-          id: String(data.id ?? data.slug ?? data.name),
-          name: data.name,
-          brand: data.brand ?? "",
-          price: data.priceDa ?? 0,
-          image: data.imageUrl ?? "/placeholder.svg",
-          category: data.categorySlug ?? "",
-          rating: data.rating ?? 0,
-          reviews: data.reviews ?? 0,
-          discount: typeof data.discount === "number" ? data.discount : undefined,
-          promoPriceDa: typeof data.promoPriceDa === "number" ? data.promoPriceDa : undefined,
-        }))
+        const newItems: HomeProduct[] = newDocs.map((data: any) => {
+          const base = data.priceDa ?? 0
+          const discount = typeof data.discount === "number" ? data.discount : 0
+          const storedPromo = typeof data.promoPriceDa === "number" ? data.promoPriceDa : undefined
+
+          const effectivePrice =
+            storedPromo != null
+              ? storedPromo
+              : discount > 0
+                ? Math.round(base * (1 - discount / 100))
+                : base
+
+          return {
+            id: String(data.id ?? data.slug ?? data.name),
+            name: data.name,
+            brand: data.brand ?? "",
+            price: effectivePrice,
+            image: data.imageUrl ?? "/placeholder.svg",
+            category: data.categorySlug ?? "",
+            rating: data.rating ?? 0,
+            reviews: data.reviews ?? 0,
+            discount: discount || undefined,
+            promoPriceDa: storedPromo,
+            basePriceDa: base,
+          }
+        })
 
         setSaleProducts(saleItems)
         setNewProducts(newItems)
@@ -252,10 +280,7 @@ export default function HomePage() {
                 const hasDiscount = typeof product.discount === "number" && product.discount! > 0
                 const discountPercent = hasDiscount ? (product.discount as number) : 0
 
-                // Base price is the non-discounted reference
-                const basePrice = hasDiscount && typeof product.promoPriceDa === "number"
-                  ? Math.round((product.promoPriceDa * 100) / (100 - discountPercent))
-                  : product.price
+                const basePrice = product.basePriceDa ?? product.price
 
                 const effectivePrice =
                   hasDiscount && typeof product.promoPriceDa === "number"

@@ -192,7 +192,13 @@ export default function AdminProductsPage() {
       slug: p.slug,
       categorySlug: p.categorySlug,
       priceDa: p.priceDa,
-      promoPriceDa: p.priceDa && p.discount ? Math.round((p.priceDa * (1 - (p.discount ?? 0) / 100)) / 10) * 10 : undefined,
+      // Prefer the exact stored promoPriceDa if it exists; only fall back to a computed value if needed
+      promoPriceDa:
+        typeof p.promoPriceDa === "number"
+          ? p.promoPriceDa
+          : p.priceDa && p.discount
+            ? Math.round((p.priceDa * (1 - (p.discount ?? 0) / 100)) / 10) * 10
+            : undefined,
       brand: p.brand,
       imageUrl: p.imageUrl,
       discount: p.discount ?? 0,

@@ -97,13 +97,13 @@ export default function CategoryPage() {
     void load()
   }, [slug])
 
-  const addProductToCart = (product: (typeof products)[0]) => {
+  const addProductToCart = (product: (typeof products)[0], price: number) => {
     // Cart store currently expects a product shape from homepage; for now, push minimal info.
     addItem({
       id: product.id,
       name: product.name,
       brand: product.brand ?? "",
-      price: (product.priceDa ?? 0) / 1, // stored as DA already
+      price,
       image: product.imageUrl ?? "/placeholder.svg",
       category: product.categorySlug ?? "",
       rating: 0,
@@ -111,8 +111,8 @@ export default function CategoryPage() {
     } as any)
   }
 
-  const handleBuyNow = (product: (typeof products)[0]) => {
-    addProductToCart(product)
+  const handleBuyNow = (product: (typeof products)[0], price: number) => {
+    addProductToCart(product, price)
     toggleCart()
   }
 
@@ -205,7 +205,7 @@ export default function CategoryPage() {
                       <div className="px-3 pb-3 pt-1.5 space-y-2">
                         <Button
                           className="w-full bg-black text-white hover:bg-zinc-900 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-black"
-                          onClick={() => isAvailable && addProductToCart(product)}
+                          onClick={() => isAvailable && addProductToCart(product, discountedPrice)}
                           disabled={!isAvailable}
                         >
                           <ShoppingCart className="w-4 h-4 mr-2" />
@@ -214,7 +214,7 @@ export default function CategoryPage() {
                         <Button
                           variant="outline"
                           className="w-full border-zinc-800 text-black hover:bg-zinc-100 text-[11px] md:text-xs font-semibold tracking-wide py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                          onClick={() => isAvailable && handleBuyNow(product)}
+                          onClick={() => isAvailable && handleBuyNow(product, discountedPrice)}
                           disabled={!isAvailable}
                         >
                           Acheter maintenant
