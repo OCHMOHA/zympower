@@ -66,61 +66,61 @@ export const wilayaNames: Record<number, string> = {
 
 // Tarifs de livraison par wilaya (domicile / stopDesk)
 export const tarifsLivraison: TarifsLivraison = {
-  "16": { domicile: 500, stopDesk: 250 },
-  "35": { domicile: 500, stopDesk: 300 },
-  "9": { domicile: 550, stopDesk: 250 },
-  "42": { domicile: 550, stopDesk: 250 },
-  "15": { domicile: 600, stopDesk: 300 },
-  "10": { domicile: 650, stopDesk: 300 },
-  "26": { domicile: 650, stopDesk: 250 },
-  "2": { domicile: 700, stopDesk: 350 },
-  "6": { domicile: 700, stopDesk: 350 },
-  "14": { domicile: 700, stopDesk: 350 },
-  "19": { domicile: 700, stopDesk: 350 },
-  "25": { domicile: 700, stopDesk: 350 },
-  "31": { domicile: 700, stopDesk: 350 },
-  "4": { domicile: 750, stopDesk: 350 },
-  "5": { domicile: 750, stopDesk: 350 },
-  "13": { domicile: 750, stopDesk: 350 },
-  "18": { domicile: 750, stopDesk: 350 },
-  "21": { domicile: 750, stopDesk: 350 },
-  "22": { domicile: 750, stopDesk: 350 },
-  "23": { domicile: 750, stopDesk: 350 },
-  "27": { domicile: 750, stopDesk: 350 },
-  "28": { domicile: 750, stopDesk: 350 },
-  "29": { domicile: 750, stopDesk: 350 },
-  "34": { domicile: 750, stopDesk: 350 },
-  "38": { domicile: 750, stopDesk: 350 },
-  "41": { domicile: 750, stopDesk: 350 },
-  "43": { domicile: 750, stopDesk: 350 },
-  "44": { domicile: 750, stopDesk: 350 },
-  "46": { domicile: 750, stopDesk: 350 },
-  "48": { domicile: 750, stopDesk: 350 },
-  "12": { domicile: 800, stopDesk: 350 },
-  "20": { domicile: 800, stopDesk: 350 },
-  "24": { domicile: 800, stopDesk: 350 },
-  "36": { domicile: 800, stopDesk: 350 },
-  "40": { domicile: 800, stopDesk: 350 },
-  "7": { domicile: 900, stopDesk: 350 },
-  "51": { domicile: 900, stopDesk: 350 },
-  "3": { domicile: 1000, stopDesk: 500 },
-  "17": { domicile: 1000, stopDesk: 500 },
-  "30": { domicile: 1000, stopDesk: 500 },
-  "39": { domicile: 1000, stopDesk: 500 },
-  "47": { domicile: 1000, stopDesk: 500 },
-  "55": { domicile: 1000, stopDesk: 500 },
-  "57": { domicile: 1000, stopDesk: 500 },
-  "58": { domicile: 1000, stopDesk: 500 },
-  "8": { domicile: 1100, stopDesk: 600 },
-  "32": { domicile: 1100, stopDesk: 600 },
-  "45": { domicile: 1100, stopDesk: 600 },
-  "52": { domicile: 1100, stopDesk: 600 },
-  "1": { domicile: 1400, stopDesk: 700 },
-  "37": { domicile: 1400, stopDesk: 600 },
-  "49": { domicile: 1400, stopDesk: 700 },
-  "11": { domicile: 1850, stopDesk: 1000 },
-  "53": { domicile: 1850, stopDesk: 1000 },
-  "33": { domicile: 2000, stopDesk: 1000 },
+  "16": { domicile: 500, stopDesk: 300 }, // Alger
+  "9": { domicile: 600, stopDesk: 400 }, // Blida
+  "35": { domicile: 600, stopDesk: 400 }, // Boumerdès
+  "42": { domicile: 600, stopDesk: 400 }, // Tipaza
+  "26": { domicile: 700, stopDesk: 450 }, // Médéa
+  "10": { domicile: 700, stopDesk: 400 }, // Bouira
+  "15": { domicile: 700, stopDesk: 400 }, // Tizi Ouzou
+  "38": { domicile: 800, stopDesk: 450 }, // Tissemsilt
+  "21": { domicile: 800, stopDesk: 450 }, // Skikda
+  "19": { domicile: 800, stopDesk: 450 }, // Sétif
+  "13": { domicile: 800, stopDesk: 450 }, // Tlemcen
+  "48": { domicile: 800, stopDesk: 450 }, // Relizane
+  "4": { domicile: 800, stopDesk: 450 }, // Oum El Bouaghi
+  "31": { domicile: 800, stopDesk: 450 }, // Oran
+  "28": { domicile: 800, stopDesk: 450 }, // M'Sila
+  "27": { domicile: 800, stopDesk: 450 }, // Mostaganem
+  "43": { domicile: 800, stopDesk: 450 }, // Mila
+  "22": { domicile: 800, stopDesk: 450 }, // Sidi Bel Abbès
+  "6": { domicile: 800, stopDesk: 450 }, // Béjaïa
+  "29": { domicile: 800, stopDesk: 450 }, // Mascara
+  "44": { domicile: 800, stopDesk: 450 }, // Aïn Defla
+  "46": { domicile: 800, stopDesk: 450 }, // Aïn Témouchent
+  "23": { domicile: 800, stopDesk: 450 }, // Annaba
+  "5": { domicile: 800, stopDesk: 450 }, // Batna
+  "34": { domicile: 800, stopDesk: 450 }, // Bordj Bou Arreridj
+  "2": { domicile: 800, stopDesk: 450 }, // Chlef
+  "25": { domicile: 800, stopDesk: 450 }, // Constantine
+  "18": { domicile: 850, stopDesk: 450 }, // Jijel
+  "20": { domicile: 900, stopDesk: 500 }, // Saïda
+  "41": { domicile: 900, stopDesk: 500 }, // Souk Ahras
+  "14": { domicile: 900, stopDesk: 500 }, // Tiaret
+  "36": { domicile: 900, stopDesk: 500 }, // El Tarf
+  "24": { domicile: 900, stopDesk: 450 }, // Guelma
+  "12": { domicile: 900, stopDesk: 500 }, // Tébessa
+  "40": { domicile: 900, stopDesk: 500 }, // Khenchela
+  "51": { domicile: 1000, stopDesk: 650 }, // Ouled Djellal
+  "3": { domicile: 1000, stopDesk: 600 }, // Laghouat
+  "17": { domicile: 1000, stopDesk: 600 }, // Djelfa
+  "7": { domicile: 1000, stopDesk: 550 }, // Biskra
+  "55": { domicile: 1100, stopDesk: 700 }, // Touggourt
+  "57": { domicile: 1100, stopDesk: 650 }, // El M'ghair
+  "47": { domicile: 1100, stopDesk: 650 }, // Ghardaïa
+  "30": { domicile: 1100, stopDesk: 650 }, // Ouargla
+  "39": { domicile: 1100, stopDesk: 600 }, // El Oued
+  "58": { domicile: 1150, stopDesk: 700 }, // El Meniaa
+  "32": { domicile: 1150, stopDesk: 700 }, // El Bayadh
+  "8": { domicile: 1200, stopDesk: 700 }, // Béchar
+  "52": { domicile: 1200, stopDesk: 800 }, // Béni Abbès
+  "45": { domicile: 1200, stopDesk: 700 }, // Naâma
+  "1": { domicile: 1500, stopDesk: 800 }, // Adrar
+  "49": { domicile: 1500, stopDesk: 800 }, // Timimoun
+  "37": { domicile: 1500, stopDesk: 900 }, // Tindouf
+  "11": { domicile: 1800, stopDesk: 1200 }, // Tamanrasset
+  "53": { domicile: 1800, stopDesk: 1200 }, // In Salah
+  "33": { domicile: 2000, stopDesk: 1200 }, // Illizi
 }
 
 // Communes par wilaya (copied from the provided JS).
